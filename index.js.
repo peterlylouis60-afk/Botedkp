@@ -1,0 +1,75 @@
+
+const menu = `
+╔══════════════════╗
+       👑 BOT DPK 👑
+╚══════════════════╝
+
+🤖 COMMANDES DISPONIBLES
+
+.menu
+.tagall
+.kick
+.promote
+.demote
+.purge
+🔥 DPK FAMILY 🔥
+`;
+
+async function handleCommand(sock, msg, command) {
+  const jid = msg.key.remoteJid;
+
+  if (command === ".menu") {
+    await sock.sendMessage(jid, { text: menu });
+  }
+
+  if (command === ".tagall" && jid.endsWith("@g.us")) {
+    const group = await sock.groupMetadata(jid);
+    const members = group.participants.map(p => p.id);
+
+    await sock.sendMessage(jid, {
+      text: "👑 TAG ALL - DPK 👑",
+      mentions: members
+    });
+  }
+}
+
+export { handleCommand };
+
+if (command === ".purge") {
+  const jid = msg.key.remoteJid;
+
+  if (!jid.endsWith("@g.us")) return;
+
+  const group = await sock.groupMetadata(jid);
+  const sender = msg.key.participant;
+
+  const admins = group.participants.filter(
+    p => p.admin === "admin" || p.admin === "superadmin"
+  );
+
+  const isAdmin = admins.some(p => p.id === sender);
+
+  if (!isAdmin) {
+    return sock.sendMessage(jid, {
+      text: "⛔ Se admin sèlman ki ka itilize purge!"
+    });
+  }
+
+  const quoted =
+    msg.message?.extendedTextMessage?.contextInfo;
+
+  if (!quoted?.stanzaId) {
+    return sock.sendMessage(jid, {
+      text: "⚠️ Reponn mesaj ou vle netwaye a ak .purge"
+    });
+  }
+
+  await sock.sendMessage(jid, {
+    delete: {
+      remoteJid: jid,
+      fromMe: false,
+      id: quoted.stanzaId,
+      participant: quoted.participant
+    }
+  });
+}
